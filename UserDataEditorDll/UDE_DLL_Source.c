@@ -42,7 +42,8 @@ u* ReadCSVFile(LPWSTR path)
 		MessageBox(NULL, L"Ошибка", L"Ошибка при чтении данных", MB_ICONERROR);
 		return NULL;
 	}
-
+	u* data = ParseStr(str);
+	return data;
 }
 
 u* ParseStr(LPSTR str)
@@ -51,7 +52,7 @@ u* ParseStr(LPSTR str)
 	TCHAR* del1 = L";";
 	char* p = str;
 	int n = 0;
-	while (p = strchr(p, "\n"))
+	while (p = strchr(p, '\n'))
 		p++, n++;
 	free(p);
 	LPSTR *arrstr = malloc(n*sizeof(LPSTR));
@@ -80,6 +81,6 @@ u* ParseStr(LPSTR str)
 		data[i].patronymic = k > 1 ? jdata[2] : "";
 		data[i].old = k > 2 ? atoi(jdata[3]) : 0;
 	}
-	return data;
+	return NULL;
 }
 

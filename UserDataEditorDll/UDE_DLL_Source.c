@@ -26,7 +26,7 @@ u* ReadCSVFile(LPWSTR path)
 	HANDLE hFile = CreateFile(path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	DWORD d = 0;//сколько фактически байт было прочитано
-	DWORD sizeBuffer = 4096;//объем буфера
+	DWORD sizeBuffer = 512;//объем буфера
 	LPSTR str = malloc(sizeBuffer+1);//куда считывать
 	if (ReadFile(hFile, str, sizeBuffer, &d, NULL)) 
 	{
@@ -66,17 +66,20 @@ u* ParseStr(LPSTR str)
 	u* data = malloc(n * sizeof(u));
 	for (int i = 1; i < n; i++)
 	{
+		int k = 0;
 		LPSTR idata, *jdata = malloc(4*sizeof(LPSTR));
-		for (int k = 0; k < 4; k++)
+		idata = strtok(*arrstr[0], del1);
+		while(idata != NULL)
 		{
-			idata = strtok(*arrstr[0], del1);
 			jdata[k] = idata;
+			idata = strtok(NULL, del1);	
+			k++;
 		}
-		data[i].lastname = jdata[0];
-		data[i].name = jdata[1];
-		data[i].patronymic = jdata[0];
-		data[i].old = atoi(jdata[0]);
+		data[i].lastname = k >= 0 ? jdata[0] : "";
+		data[i].name = k > 0 ? jdata[1] : "";
+		data[i].patronymic = k > 1 ? jdata[2] : "";
+		data[i].old = k > 2 ? atoi(jdata[3]) : 0;
 	}
-
+	return data;
 }
 

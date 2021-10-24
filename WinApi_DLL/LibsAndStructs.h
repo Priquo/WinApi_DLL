@@ -9,6 +9,6 @@ typedef struct UsersData u;
 
 struct UsersData
 {
-	LPSTR lastname, name, patronymic;
-	int old;
+	LPWSTR lastname, name, patronymic;
+	DWORD old;
 };

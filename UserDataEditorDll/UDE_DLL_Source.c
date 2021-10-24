@@ -20,67 +20,94 @@ BOOL WINAPI DllMain(HINSTANCE hlnstDll, DWORD dwReason, LPVOID IpReserved)
 		return FALSE;
 }
 
-__declspec(dllexport) u* ReadCSVFile(LPWSTR path);
-u* ReadCSVFile(LPWSTR path)
+DWORD LpwstrToDword(LPWSTR str)//перевод из строки в число
+{
+	DWORD dw = 0;
+	for (size_t i = 0; i < wcslen(str); i++)//по всем символам строки
+	{
+		dw += (str[i] - '0');//получаем цифру
+		dw *= 10;//увеличиваем разряд числа на 1
+	}
+	return dw / 10;//делим на 10, т.к. лишний раз увеличили разряд
+}
+
+LPWSTR ReadCSVFile(LPWSTR path)
 {
 	HANDLE hFile = CreateFile(path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	DWORD d = 0;//сколько фактически байт было прочитано
-	DWORD sizeBuffer = 512;//объем буфера
-	LPSTR str = malloc(sizeBuffer+1);//куда считывать
-	if (ReadFile(hFile, str, sizeBuffer, &d, NULL)) 
+	DWORD sizeBuffer = 100500;//объем буфера
+	LPWSTR str = calloc(sizeBuffer, sizeof(WCHAR));//куда считывать
+	if (ReadFile(hFile, str, sizeBuffer * sizeof(WCHAR), &d, NULL))
 	{
-		str[d] = '\0';
-		if (strlen(str) == 0)
+		str[d / 2] = '\0';
+		if (d == 0)
 		{
 			MessageBox(NULL, L"Ошибка", L"Ваш файл пустой или отсутствовал", MB_ICONERROR);
-			return NULL;
 		}
 	}
 	else
 	{
 		MessageBox(NULL, L"Ошибка", L"Ошибка при чтении данных", MB_ICONERROR);
-		return NULL;
 	}
-	u* data = ParseStr(str);
-	return data;
+	if (str != NULL)
+	{
+		CloseHandle(hFile);
+		return str;
+	}
+	CloseHandle(hFile);
+	return NULL;
 }
 
-u* ParseStr(LPSTR str)
+__declspec(dllexport) u* ParseStr(LPWSTR path, LPDWORD count)
 {
+	LPWSTR str = ReadCSVFile(path);
 	TCHAR* del = L"\n";
 	TCHAR* del1 = L";";
-	char* p = str;
-	int n = 0;
-	while (p = strchr(p, '\n'))
-		p++, n++;
-	free(p);
-	LPSTR *arrstr = malloc(n*sizeof(LPSTR));
-
-	LPSTR istr = strtok(str, del);
-	for (int i=0;i<n;i++)
+	int n = 0, k = 0;
+	for (int i = 0; i < wcslen(str); i++)
 	{
-		*arrstr[i] = istr;
-		istr = strtok(NULL, del);
-		i++;
+		if (str[i] == del[0])
+			n++;
 	}
-	u* data = malloc(n * sizeof(u));
-	for (int i = 1; i < n; i++)
+	*count = n;
+	u* data = calloc(n, sizeof(u));
+	if (n != 0)
 	{
-		int k = 0;
-		LPSTR idata, *jdata = malloc(4*sizeof(LPSTR));
-		idata = strtok(*arrstr[0], del1);
-		while(idata != NULL)
+		LPWSTR istr = calloc(n+1, sizeof(WCHAR));
+		LPWSTR token = wcstok(str, del, istr);
+		while (token != NULL && k<n)
 		{
-			jdata[k] = idata;
-			idata = strtok(NULL, del1);	
+			LPWSTR strT = calloc(wcslen(token)+1, sizeof(WCHAR));
+			wcscpy(strT, token);
+			LPWSTR jstr = calloc(wcslen(token)+1, sizeof(WCHAR));
+			LPWSTR tokenJ = wcstok(strT, del1, jstr);
+			data[k].lastname = calloc(wcslen(tokenJ) + 1, sizeof(WCHAR));
+			wcscpy(data[k].lastname, tokenJ);
+			tokenJ = wcstok(NULL, del1, jstr);
+			data[k].name = calloc(wcslen(tokenJ) + 1, sizeof(WCHAR));
+			wcscpy(data[k].name, tokenJ);
+			tokenJ = wcstok(NULL, del1, jstr);
+			data[k].patronymic = calloc(wcslen(tokenJ) + 1, sizeof(WCHAR));
+			wcscpy(data[k].patronymic, tokenJ);
+			tokenJ = wcstok(NULL, L"\r", jstr);
+			data[k].old = tokenJ != NULL ? LpwstrToDword(tokenJ) : 0;
+			token = (LPWSTR)wcstok(NULL, del, istr);
+			free(strT);
+			free(jstr);
 			k++;
 		}
-		data[i].lastname = k >= 0 ? jdata[0] : "";
-		data[i].name = k > 0 ? jdata[1] : "";
-		data[i].patronymic = k > 1 ? jdata[2] : "";
-		data[i].old = k > 2 ? atoi(jdata[3]) : 0;
+		free(token);
+		free(istr);
+		return data;
 	}
 	return NULL;
 }
+
+__declspec(dllexport) void FindUsers(LPWSTR path, u* datausers)
+{
+	int n = 0;
+
+}
+
 

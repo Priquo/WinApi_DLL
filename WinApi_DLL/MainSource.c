@@ -1,16 +1,16 @@
 #include "LibsAndStructs.h"
 #define PATH L"UserDataEditor.dll"
-#define DATA_PATH L"../Debug/Users.csv"
-typedef u*(_cdecl* ReadCSVFile)(LPWSTR);
-//typedef int(_cdecl* MyFunction)(LPWSTR);
+#define DATA_PATH L"../WinApi_DLL/Users.csv"
+typedef u*(_cdecl* ParseStr)(LPWSTR, LPDWORD);
 
 int WINAPI WinMain(HINSTANCE hlnstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     HINSTANCE MyDLL;
     if (!(MyDLL = LoadLibrary(PATH))) return 1;//подключение DLL
-    ReadCSVFile Read; //создали переменную типа указатель на вызываемую функцию
-    Read = (ReadCSVFile)GetProcAddress(MyDLL, "ReadCSVFile");//инициализация указателя на функцию
-    u* users = Read(DATA_PATH);
+    ParseStr Read; //создали переменную типа указатель на вызываемую функцию
+    Read = (ParseStr)GetProcAddress(MyDLL, "ParseStr");//инициализация указателя на функцию
+    DWORD n = 0;
+    u* users = Read(DATA_PATH, &n);
     FreeLibrary(MyDLL);//отключение DLL
     return 0;
 }

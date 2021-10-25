@@ -2,7 +2,7 @@
 
 #define PATH L"UserDataEditor.dll"
 #define DATA_PATH L"../WinApi_DLL/Users1.csv"
-#define SEARCH L"ова"
+#define SEARCH L"Иван"
 
 typedef u*(_cdecl* ParseStr)(LPWSTR, LPDWORD);
 typedef u* (_cdecl* FindAndWriteUsers)(LPWSTR, u*, DWORD);

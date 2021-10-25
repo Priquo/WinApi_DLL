@@ -104,10 +104,60 @@ __declspec(dllexport) u* ParseStr(LPWSTR path, LPDWORD count)
 	return NULL;
 }
 
-__declspec(dllexport) void FindUsers(LPWSTR path, u* datausers)
-{
+__declspec(dllexport) u* FindAndWriteUsers(LPWSTR search, u* datausers, DWORD k)
+{	
 	int n = 0;
+	u* searchedUsers = calloc(k, sizeof(u));
+	for (int i = 0; i < k; i++)
+	{
+		if (wcsstr(datausers[i].lastname, search))
+		{
+			searchedUsers[n].lastname = calloc(wcslen(datausers[i].lastname) + 1, sizeof(WCHAR));
+			wcscpy(searchedUsers[n].lastname, datausers[i].lastname);
+			searchedUsers[n].name = calloc(wcslen(datausers[i].name) + 1, sizeof(WCHAR));
+			wcscpy(searchedUsers[n].name, datausers[i].name);
+			searchedUsers[n].patronymic = calloc(wcslen(datausers[i].patronymic) + 1, sizeof(WCHAR));
+			wcscpy(searchedUsers[n].patronymic, datausers[i].patronymic);
+			searchedUsers[n].old = datausers[i].old;
+			n++;
+		}
+	}
+	HANDLE hFile = CreateFile(RESULT_FILE, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	DWORD d = 0;
+	TCHAR bugg[SIZE_BUFFER];
+	LPWSTR MyString = calloc(100500, sizeof(WCHAR));
+	swprintf(bugg, SIZE_BUFFER, TEXT("%s;%s;%s;%d\r\n"), searchedUsers[0].lastname, searchedUsers[0].name, searchedUsers[0].patronymic, searchedUsers[0].old);
+	wcscpy(MyString, bugg);
+	for (int i = 1; i < n; i++)
+	{
+		swprintf(bugg, SIZE_BUFFER, TEXT("%s;%s;%s;%d\r\n"), searchedUsers[i].lastname, searchedUsers[i].name, searchedUsers[i].patronymic, searchedUsers[i].old);
+		wcscat(MyString, bugg);
+		//free(bugg);
+	}
+	if (MyString != NULL)
+		WriteFile(hFile, MyString, wcslen(MyString) * sizeof(TCHAR), d, NULL);
+	CloseHandle(hFile);
+	return searchedUsers;
+}
 
+__declspec(dllexport) DWORD AverageAge(u* users)
+{
+	DWORD summ = 0, avAge = 0;
+	int n = 0;
+	while (users[n].old != NULL)
+	{
+		summ += users[n].old;
+		n++;
+	}
+	avAge = summ / n;
+	HANDLE hFile = CreateFile(RESULT_FILE, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	DWORD d = 0;
+	TCHAR bugg[100];
+	swprintf(bugg, 100, TEXT("Средний возраст пользователей равен %d\n"), avAge);
+	SetFilePointer(hFile, 0, NULL, FILE_END);
+	WriteFile(hFile, bugg, wcslen(bugg) * sizeof(TCHAR), d, NULL);
+	CloseHandle(hFile);
+	return avAge;
 }
 
 

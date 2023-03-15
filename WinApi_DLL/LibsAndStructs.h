@@ -14,3 +14,9 @@ struct UsersData
 	LPWSTR lastname, name, patronymic;
 	DWORD old;
 };
+
+struct NewData
+{
+	DWORD id;
+	LPWSTR name, phone;
+};
